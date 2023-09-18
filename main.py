@@ -35,9 +35,7 @@ def _get_all_jobs() -> list[Job]:
         for file in file_names:
             job_name: str = file
             job_name, _ = os.path.splitext(job_name)
-            print(f"file name ist {job_name}")
             job_test_case: str = Path(f"/tmp/jobs/{file}").read_text()
-            print(job_test_case)
             existing_jobs.append(Job(job_name=job_name, test_case=job_test_case))
         return existing_jobs
     else:
@@ -53,14 +51,14 @@ def _get_job_by_name(job_name: str) -> Job:
 
 
 @app.get("/jobs")
-def get_jobs(job_name: Optional[str] = None):
+def get_jobs(job_name: Optional[str] = None) -> dict:
     """Returns all jobs or a specific job"""
     if job_name is None:
         return _get_all_jobs()
     return _get_job_by_name(job_name)
 
 @app.post("/job")
-def create_job(new_job: Job):
+def create_job(new_job: Job) -> None:
     """Creates a new job"""
     if not os.path.exists(jobs_path):
         os.makedirs(jobs_path)
@@ -69,22 +67,38 @@ def create_job(new_job: Job):
         robot_file.write(new_job.test_case)
 
 @app.post("/run")
-def execute_job(job_name: str):
+def execute_job(job_name: str) -> None:
     """Executes the specified job."""
     if not os.path.exists(jobs_log_path):
         os.makedirs(jobs_log_path)
         print(f"Directory {jobs_log_path} created successfully!")
+    file_names = os.listdir(jobs_path)   
     exec_job: Job = _get_job_by_name(job_name)
     exec_job_name: str = exec_job.job_name
-    print(exec_job_name)
-    result = subprocess.run(f"robot --log {jobs_log_path}/log /tmp/jobs/{exec_job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    log_name: str = f"log_{exec_job_name}"
+    print(f"the file name: {file_names}]")
+    if log_name in file_names:
+        print(f"the file name: {file_names}]")
+        result = subprocess.run(f"sudo rm {jobs_log_path}/{log_name}.html", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(f"robot --log {jobs_log_path}/{log_name} /tmp/jobs/{exec_job_name}.robot", 
+                            shell=True, 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE, 
+                            text=True)
     print(result)
 
 @app.delete("/job")
 def delete_job(job_name: str) -> None:
+    result = subprocess.run(f"rm /tmp/jobs/{job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    result = subprocess.run(f"sudo rm /tmp/jobs/{job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+@app.get("/log")
+def get_log(job_name: str) -> str:
+    job = _get_job_by_name(job_name)
+    job_name = job.job_name
 
+    log_name: str = f"log_{job_name}.html"
+    log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_text()
+    return log_raw_string
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
