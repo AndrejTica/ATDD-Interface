@@ -10,6 +10,7 @@ from pydantic import BaseModel
 app = FastAPI()
 
 jobs_path: str = "/tmp/jobs/"
+jobs_log_path: str = "/tmp/jobs_log/"
 
 class Job(BaseModel):
     """Model for representing a job"""
@@ -70,10 +71,13 @@ def create_job(new_job: Job):
 @app.post("/run")
 def execute_job(job_name: str):
     """Executes the specified job."""
+    if not os.path.exists(jobs_log_path):
+        os.makedirs(jobs_log_path)
+        print(f"Directory {jobs_log_path} created successfully!")
     exec_job: Job = _get_job_by_name(job_name)
     exec_job_name: str = exec_job.job_name
     print(exec_job_name)
-    result = subprocess.run(f"robot --log /tmp/jobs_log/log /tmp/jobs/{exec_job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(f"robot --log {jobs_log_path}/log /tmp/jobs/{exec_job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     print(result)
 
 @app.delete("/job")
