@@ -51,7 +51,7 @@ def _get_job_by_name(job_name: str) -> Job:
 
 
 @app.get("/jobs")
-def get_jobs(job_name: Optional[str] = None) -> dict:
+def get_jobs(job_name: Optional[str] = None):
     """Returns all jobs or a specific job"""
     if job_name is None:
         return _get_all_jobs()
