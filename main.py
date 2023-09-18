@@ -68,15 +68,18 @@ def create_job(new_job: Job):
         robot_file.write(new_job.test_case)
 
 @app.post("/run")
-def execute_job(job_name: int):
+def execute_job(job_name: str):
     """Executes the specified job."""
     exec_job: Job = _get_job_by_name(job_name)
     exec_job_name: str = exec_job.job_name
     print(exec_job_name)
-    result = subprocess.run(f"robot /tmp/{exec_job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(f"robot --log /tmp/jobs_log/log /tmp/jobs/{exec_job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     print(result)
 
-    #TODO: pass the fields into a robot parser at this point
+@app.delete("/job")
+def delete_job(job_name: str) -> None:
+
+    result = subprocess.run(f"sudo rm /tmp/jobs/{job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 if __name__ == "__main__":
