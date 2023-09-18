@@ -33,6 +33,7 @@ def _get_all_jobs() -> list[Job]:
         file_names = os.listdir(jobs_path)
         for file in file_names:
             job_name: str = file
+            job_name, _ = os.path.splitext(job_name)
             print(f"file name ist {job_name}")
             job_test_case: str = Path(f"/tmp/jobs/{file}").read_text()
             print(job_test_case)
