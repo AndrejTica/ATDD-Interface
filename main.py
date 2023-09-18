@@ -19,7 +19,6 @@ class Job(BaseModel):
         super().__init__(**data)
 
 job_database: list[Job] = []
-args_database: list[str] = []
 
 @app.get("/")
 def root():
@@ -44,10 +43,6 @@ def create_job(new_job: Job):
     """Creates a new job"""
     job_database.append(new_job)
 
-@app.post("/args")
-def create_args(robot_args: str):
-    """Creates args"""
-    args_database.append(robot_args)
 
 @app.post("/run")
 def execute_job(job_id: int):
