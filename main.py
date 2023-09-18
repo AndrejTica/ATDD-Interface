@@ -93,10 +93,14 @@ def delete_job(job_name: str) -> None:
 
 @app.get("/log")
 def get_log(job_name: str) -> str:
-    job = _get_job_by_name(job_name)
+    log_name: str = f"log_{job_name}.html"
+    try:
+        job = _get_job_by_name(job_name)
+    except HTTPException:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No log with name: {log_name}, found!")
     job_name = job.job_name
 
-    log_name: str = f"log_{job_name}.html"
+
     log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_text()
     return log_raw_string
 
