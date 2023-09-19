@@ -4,7 +4,8 @@ import subprocess
 import os
 from pathlib import Path
 from typing import ClassVar, Optional
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -92,7 +93,7 @@ def delete_job(job_name: str) -> None:
     result = subprocess.run(f"rm /tmp/jobs/{job_name}.robot", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 @app.get("/log")
-def get_log(job_name: str) -> str:
+def get_log(job_name: str, response_class=HTMLResponse) -> str:
     log_name: str = f"log_{job_name}.html"
     try:
         job = _get_job_by_name(job_name)
@@ -101,8 +102,12 @@ def get_log(job_name: str) -> str:
     job_name = job.job_name
 
 
-    log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_bytes()
-    return log_raw_string
+    #with open(f"/tmp/jobs_log/{log_name}", 'r', encoding='utf-8') as file:
+        #html_content = file.read()
+    #return html_content.encode("utf-8")
+    log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_text()
+    #log_raw_string = Response(media_type="application/octet-stream", headers=headers)
+    return HTMLResponse(content=log_raw_string, status_code=200)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
