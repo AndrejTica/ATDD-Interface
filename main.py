@@ -101,7 +101,7 @@ def get_log(job_name: str) -> str:
     job_name = job.job_name
 
 
-    log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_text()
+    log_raw_string = Path(f"/tmp/jobs_log/{log_name}").read_bytes()
     return log_raw_string
 
 if __name__ == "__main__":
